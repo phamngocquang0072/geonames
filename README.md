@@ -1,2 +1,3 @@
 # geonames
-Ex2 
+Weekly exercises for android programming
+
