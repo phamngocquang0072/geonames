@@ -64,7 +64,7 @@ public class CountriesAdapter extends ArrayAdapter<Country> {
 //                .into(viewHolder.ivFlag);
         Picasso.with(getContext())
                 .load(flagUrl)
-                .placeholder(R.drawable.ic_launcher_background)
+                .placeholder(R.drawable.ic_launcher_foreground)
                 .error(R.drawable.stub)
                 .into(viewHolder.ivFlag);
 

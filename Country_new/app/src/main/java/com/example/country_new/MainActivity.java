@@ -1,9 +1,16 @@
 package com.example.country_new;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -16,6 +23,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
@@ -23,13 +31,16 @@ import cz.msebera.android.httpclient.Header;
 public class MainActivity extends AppCompatActivity {
 
     public static final String COUNTRY_DETAIL_KEY = "country";
+    public static final String COUNTRY_DETAIL_POS = "pos";
     public static final String LINK = "link";
     private ListView lvCountries;
     private ProgressBar progressBar;
-    private CountriesAdapter countriesAdapter;
+    private static CountriesAdapter countriesAdapter;
     private CountryClient client;
     private static final String GEONAME_API_KEY= "ngotruongkhai";
     private ArrayList<Country> mCountrys;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +63,69 @@ public class MainActivity extends AppCompatActivity {
         fetchCountries(GEONAME_API_KEY);
 
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+
+        SearchManager searchManager = (SearchManager) MainActivity.this.getSystemService(Context.SEARCH_SERVICE);
+
+        SearchView searchView = null;
+        searchView = (SearchView) searchItem.getActionView();
+        SearchView finalSearchView = searchView;
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                ArrayList<Country> fillerCountries = new ArrayList<Country>();
+
+                for (Country country : mCountrys) {
+                    if (country.getCountryName().toLowerCase().contains(s.toLowerCase())) {
+                        fillerCountries.add(country);
+                    }
+                }
+
+                countriesAdapter = new CountriesAdapter(getApplicationContext(), fillerCountries);
+                lvCountries.setAdapter(countriesAdapter);
+
+                finalSearchView.clearFocus();
+                searchItem.collapseActionView();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+
+                Log.e("Nomad", "onQueryTextSubmit");
+                ArrayList<Country> fillerCountries = new ArrayList<Country>();
+
+                for (Country country : mCountrys) {
+                    if (country.getCountryName().toLowerCase().contains(s.toLowerCase())) {
+                        fillerCountries.add(country);
+                    }
+                }
+
+                countriesAdapter = new CountriesAdapter(getApplicationContext(), fillerCountries);
+                lvCountries.setAdapter(countriesAdapter);
+                return true;
+            }
+        });
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_search) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
 
     public void setupCountrySelectedListener() {
         lvCountries.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -60,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
                 // Launch the detail view passing book as an extra
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra(COUNTRY_DETAIL_KEY, countriesAdapter.getItem(position).getCountryCode());
+                intent.putExtra(COUNTRY_DETAIL_POS, position);
                 startActivity(intent);
             }
         });
@@ -106,5 +181,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public CountriesAdapter getAdapter(){
+        return this.countriesAdapter;
+    }
 
 }
